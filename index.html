@@ -1,108 +1,445 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Live M3U8 Player</title>
-<link rel="stylesheet" href="style.css">
-
-<style>
-  body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
-  background: #111;
-  font-family: Arial, sans-serif;
-  color: #fff;
-}
-
-#video-container {
-  position: relative;
-  width: 80%;
-  max-width: 900px;
-  background: #000;
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-video {
-  width: 100%;
-  display: block;
-}
-
-#controls {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: rgba(0,0,0,0.6);
-  display: flex;
-  flex-direction: column;
-  padding: 5px 10px;
-}
-
-.buttons {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-button {
-  background: #2962ff;
-  border: none;
-  padding: 5px 12px;
-  margin: 2px;
-  border-radius: 5px;
-  color: white;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #0039cb;
-}
-
-#progress-container {
-  width: 100%;
-  height: 8px;
-  background: #444;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-top: 5px;
-}
-
-#progress {
-  width: 0%;
-  height: 100%;
-  background: #2962ff;
-  border-radius: 5px;
-}
-
-input[type="range"] {
-  width: 100px;
-}
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netflix-Style Video Player</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        body {
+            
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          
+        
+        }
+        
+        .video-player-container {
+            width: 100%;
+            max-width: 800px;
+            background-color: #000;
+            border-radius: 0px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+        }
+        
+        #video-player {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+        }
+        
+        .player-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 15px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .video-wrapper:hover .player-controls {
+            opacity: 1;
+        }
+        
+        .progress-container {
+            width: 100%;
+            height: 5px;
+            background-color: rgba(255, 255, 255, 0.3);
+            margin-bottom: 15px;
+            cursor: pointer;
+            border-radius: 2px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #e50914;
+            border-radius: 2px;
+            width: 0%;
+            position: relative;
+        }
+        
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            right: -5px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background-color: #e50914;
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .progress-container:hover .progress-bar::after {
+            opacity: 1;
+        }
+        
+        .controls-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .left-controls, .right-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .control-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .control-btn:hover {
+            color: #e50914;
+        }
+        
+        .time-display {
+            font-size: 14px;
+            color: #ccc;
+        }
+        
+        .quality-selector {
+            position: relative;
+        }
+        
+        .quality-dropdown {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 4px;
+            padding: 10px 0;
+            min-width: 120px;
+            display: none;
+            z-index: 10;
+        }
+        
+        .quality-selector:hover .quality-dropdown {
+            display: block;
+        }
+        
+        .quality-option {
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .quality-option:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .quality-option.active {
+            color: #e50914;
+        }
+        
+        .play-pause-btn {
+            font-size: 24px;
+        }
+        
+        .netflix-logo {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #e50914;
+            z-index: 5;
+        }
+        
+        .auto-play-indicator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .player-controls {
+                padding: 10px;
+            }
+            
+            .controls-bottom {
+                flex-wrap: wrap;
+            }
+            
+            .right-controls {
+                margin-top: 10px;
+            }
+            
+            .control-btn {
+                font-size: 14px;
+            }
+        }
+    </style>
 </head>
 <body>
+    <div class="video-player-container">
+        <div class="video-wrapper">
+            <div class="netflix-logo">N</div>
+            <div class="auto-play-indicator">
+                <span>Auto Play</span>
+                <span>▶</span>
+            </div>
+            <video id="video-player" autoplay muted></video>
+            
+            <div class="player-controls">
+                <div class="progress-container">
+                    <div class="progress-bar"></div>
+                </div>
+                
+                <div class="controls-bottom">
+                    <div class="left-controls">
+                        <button class="control-btn play-pause-btn">
+                            <span class="play-icon" style="display:none;">▶</span>
+                            <span class="pause-icon">❚❚</span>
+                        </button>
+                        <div class="time-display">
+                            <span class="current-time">0:00</span> / <span class="duration">0:00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="right-controls">
+                        <div class="quality-selector">
+                            <button class="control-btn quality-btn">
+                                Quality <span class="current-quality">Auto</span> ▼
+                            </button>
+                            <div class="quality-dropdown">
+                                <div class="quality-option active" data-quality="auto">Auto</div>
+                                <div class="quality-option" data-quality="1080">1080p</div>
+                                <div class="quality-option" data-quality="720">720p</div>
+                                <div class="quality-option" data-quality="480">480p</div>
+                                <div class="quality-option" data-quality="360">360p</div>
+                            </div>
+                        </div>
+                        
+                        <button class="control-btn fullscreen-btn">
+                            ⛶ Fullscreen
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<div id="video-container">
-  <video id="video" autoplay></video>
-  <div id="controls">
-    <div class="buttons">
-      <div>
-        <button id="play">Play</button>
-        <button id="pause">Pause</button>
-        <button id="fullscreen">Fullscreen</button>
-      </div>
-      <div>
-        Volume: <input type="range" id="volume" min="0" max="1" step="0.05" value="1">
-      </div>
-    </div>
-    <div id="progress-container">
-      <div id="progress"></div>
-    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const video = document.getElementById('video-player');
+            const playPauseBtn = document.querySelector('.play-pause-btn');
+            const playIcon = document.querySelector('.play-icon');
+            const pauseIcon = document.querySelector('.pause-icon');
+            const progressBar = document.querySelector('.progress-bar');
+            const progressContainer = document.querySelector('.progress-container');
+            const currentTimeEl = document.querySelector('.current-time');
+            const durationEl = document.querySelector('.duration');
+            const fullscreenBtn = document.querySelector('.fullscreen-btn');
+            const qualityOptions = document.querySelectorAll('.quality-option');
+            const currentQuality = document.querySelector('.current-quality');
+            const videoContainer = document.querySelector('.video-player-container');
+            const autoPlayIndicator = document.querySelector('.auto-play-indicator');
+            
+            // Set video to autoplay (muted to comply with browser policies)
+            video.autoplay = true;
+            video.muted = true;
+            
+            // Check if HLS is supported
+            if (Hls.isSupported()) {
+                const hls = new Hls({
+                    debug: false,
+                    autoStartLoad: true,
+                    // You can add more HLS configuration options here
+                });
+                
+                // For demo purposes, using a sample HLS stream
+                // Replace with your actual M3U8 URL
+                const m3u8Url = 'http://217.20.112.199/sethd/index.m3u8';
+                
+                hls.loadSource(m3u8Url);
+                hls.attachMedia(video);
+                
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    console.log('Manifest parsed, video ready to play');
+                    // Set initial duration display
+                    updateDurationDisplay();
+                    
+                    // Auto-play the video
+                    video.play().then(() => {
+                        console.log('Video autoplay started');
+                        // Update button to show pause icon since video is playing
+                        playIcon.style.display = 'none';
+                        pauseIcon.style.display = 'inline';
+                    }).catch(error => {
+                        console.log('Autoplay failed:', error);
+                        // If autoplay fails, show play button
+                        playIcon.style.display = 'inline';
+                        pauseIcon.style.display = 'none';
+                    });
+                });
+                
+                // Handle quality changes
+                qualityOptions.forEach(option => {
+                    option.addEventListener('click', function() {
+                        const quality = this.getAttribute('data-quality');
+                        
+                        // Remove active class from all options
+                        qualityOptions.forEach(opt => opt.classList.remove('active'));
+                        // Add active class to clicked option
+                        this.classList.add('active');
+                        
+                        // Update current quality display
+                        currentQuality.textContent = quality === 'auto' ? 'Auto' : quality + 'p';
+                        
+                        // In a real implementation, you would change the quality here
+                        // hls.currentLevel = quality === 'auto' ? -1 : parseInt(quality);
+                        console.log('Quality changed to:', quality);
+                    });
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                // For Safari which supports HLS natively
+                video.src = ' http://217.20.112.199/sethd/index.m3u8  ';
+                video.addEventListener('loadedmetadata', function() {
+                    updateDurationDisplay();
+                    
+                    // Auto-play the video
+                    video.play().then(() => {
+                        console.log('Video autoplay started');
+                        // Update button to show pause icon since video is playing
+                        playIcon.style.display = 'none';
+                        pauseIcon.style.display = 'inline';
+                    }).catch(error => {
+                        console.log('Autoplay failed:', error);
+                        // If autoplay fails, show play button
+                        playIcon.style.display = 'inline';
+                        pauseIcon.style.display = 'none';
+                    });
+                });
+            }
+            
+            // Play/Pause functionality
+            playPauseBtn.addEventListener('click', function() {
+                if (video.paused) {
+                    video.play();
+                    playIcon.style.display = 'none';
+                    pauseIcon.style.display = 'inline';
+                    autoPlayIndicator.style.display = 'flex';
+                } else {
+                    video.pause();
+                    playIcon.style.display = 'inline';
+                    pauseIcon.style.display = 'none';
+                    autoPlayIndicator.style.display = 'none';
+                }
+            });
+            
+            // Update progress bar and time
+            video.addEventListener('timeupdate', function() {
+                const currentTime = video.currentTime;
+                const duration = video.duration;
+                
+                if (duration) {
+                    const progressPercent = (currentTime / duration) * 100;
+                    progressBar.style.width = `${progressPercent}%`;
+                    
+                    // Update time display
+                    currentTimeEl.textContent = formatTime(currentTime);
+                }
+            });
+            
+            // Seek functionality
+            progressContainer.addEventListener('click', function(e) {
+                const rect = this.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                video.currentTime = percent * video.duration;
+            });
+            
+            // Fullscreen functionality
+            fullscreenBtn.addEventListener('click', function() {
+                if (!document.fullscreenElement) {
+                    videoContainer.requestFullscreen().catch(err => {
+                        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                    });
+                    fullscreenBtn.innerHTML = '⛶ Exit Fullscreen';
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                        fullscreenBtn.innerHTML = '⛶ Fullscreen';
+                    }
+                }
+            });
+            
+            // Update duration display when metadata is loaded
+            video.addEventListener('loadedmetadata', function() {
+                updateDurationDisplay();
+            });
+            
+            // Format time in mm:ss
+            function formatTime(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            }
+            
+            // Update duration display
+            function updateDurationDisplay() {
+                if (video.duration) {
+                    durationEl.textContent = formatTime(video.duration);
+                }
+            }
+            
+            // Handle video end
+            video.addEventListener('ended', function() {
+                playIcon.style.display = 'inline';
+                pauseIcon.style.display = 'none';
+                autoPlayIndicator.style.display = 'none';
+            });
+            
+            // Hide auto-play indicator after 3 seconds
+            setTimeout(() => {
+                autoPlayIndicator.style.opacity = '0';
+                setTimeout(() => {
+                    autoPlayIndicator.style.display = 'none';
+                }, 1000);
+            }, 3000);
+        });
+    </script>
+</body>
+</html>    </div>
   </div>
 </div>
 
