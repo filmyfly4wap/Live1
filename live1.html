@@ -1,0 +1,86 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>JW PLAYER</title>
+   
+</head>
+
+<body>     
+    <script src="https://cdn.jsdelivr.net/npm/swarmcloud-jwplayer-hlsjs@0.1.1/dist/jwplayer.hlsjs.min.js"></script>
+
+	    <script src="https://cdn.jsdelivr.net/npm/@swarmcloud/hls@latest/hls.min.js"></script>
+
+<script src="https://ssl.p.jwpcdn.com/player/v/8.22.0/jwplayer.js"></script>
+	
+	<script src="https://cdn.jwplayer.com/libraries/SAHhwvZq.js"></script>
+<script> jwplayer.defaults = jwDefaults; </script>
+    <div id="jwplayerDiv"></div>
+    <script>
+        const queryParams = new URLSearchParams(window.location.search);
+        const mpdLink = queryParams.get('mpd');
+        const m3u8Link = queryParams.get('url');
+        const keyId = queryParams.get('keyId');
+        const key = queryParams.get('key');
+
+        function playMedia() {
+            let playerConfig = {
+            	
+                            "autostart": true,
+                "preload": "none",
+                "repeat": true,
+                "Volume": "100",
+                "mute": false,
+                "width": "100%",
+	        "height":"100%", 
+		"cast": {},
+				logo: {
+        file: '',
+        link:'https://t.me/tv4wap'
+    },
+                "setPip": false
+            };
+
+            if (mpdLink) {
+                playerConfig = {
+                    ...playerConfig,
+                    file: mpdLink,
+                    type: "dash",
+                    drm: {
+                        clearkey: {
+                            key: key,
+                            keyId: keyId
+                        }
+                    }
+                };
+            } else if (m3u8Link) {
+                playerConfig = {
+                    ...playerConfig,
+                    file: m3u8Link,
+                    type: "mp4",
+                    drm: {}
+                };
+            }
+
+            const playerInstance = jwplayer('jwplayerDiv').setup(playerConfig);
+        }
+
+        window.onload = playMedia;
+    </script>
+
+
+<script>
+setTimeout(videovisible, 5000)
+function videovisible() {
+    document.getElementById('loading').style.display = 'none'
+}
+</script> 
+<style>html,body{padding:0;margin:0;height:100%}
+#jwplayerDiv{autoplay:true;width:100%;height:100%;overflow:hidden;background-color:#000;position:absolute}
+      body {            margin: 0px;      width: 100%;            height:100%;          }        .jwplayer {   width: 100%;            height:100%;                 position: absolute;        }        .jwplayer.jw-flag-aspect-mode {            min-height: 100%;            max-height: 100%;        }        #jwplayerDiv {            width: 100%;            height:100%;        }   
+</style>
+</body>
+</html>
