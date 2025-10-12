@@ -3,95 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Netflix-Style Video Player</title>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <title>Video Player - GitHub Pages Compatible</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
         }
         
         body {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: white;
+            min-height: 100vh;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            
+            justify-content: center;
+            padding: 20px;
         }
         
-        .video-player-container {
+        .container {
+            max-width: 900px;
             width: 100%;
-            max-width: 800px;
-            background-color: #000;
-            border-radius: 0px;
-            overflow: hidden;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #4cc9f0;
+        }
+        
+        .header p {
+            color: #a5b1c2;
+            font-size: 1.1rem;
+        }
+        
+        .video-container {
+            background: #0f0f23;
+            border-radius: 15px;
+            padding: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
         }
         
         .video-wrapper {
             position: relative;
             width: 100%;
-            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            border-radius: 10px;
+            overflow: hidden;
+            background: #000;
         }
         
         #video-player {
-            position: absolute;
-            top: 0;
-            left: 0;
             width: 100%;
-            height: 100%;
-            background-color: #000;
+            height: auto;
+            display: block;
+            border-radius: 8px;
         }
         
         .player-controls {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            background: rgba(0, 0, 0, 0.8);
             padding: 15px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        
-        .video-wrapper:hover .player-controls {
-            opacity: 1;
+            border-radius: 0 0 8px 8px;
+            margin-top: -4px;
         }
         
         .progress-container {
             width: 100%;
-            height: 5px;
-            background-color: rgba(255, 255, 255, 0.3);
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
             margin-bottom: 15px;
             cursor: pointer;
-            border-radius: 2px;
         }
         
         .progress-bar {
             height: 100%;
-            background-color: #e50914;
-            border-radius: 2px;
+            background: #4cc9f0;
+            border-radius: 3px;
             width: 0%;
-            position: relative;
-        }
-        
-        .progress-bar::after {
-            content: '';
-            position: absolute;
-            right: -5px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 12px;
-            height: 12px;
-            background-color: #e50914;
-            border-radius: 50%;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        
-        .progress-container:hover .progress-bar::after {
-            opacity: 1;
+            transition: width 0.1s;
         }
         
         .controls-bottom {
@@ -112,18 +109,27 @@
             color: white;
             cursor: pointer;
             font-size: 16px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            padding: 8px 12px;
+            border-radius: 5px;
+            transition: all 0.3s;
         }
         
         .control-btn:hover {
-            color: #e50914;
+            background: rgba(255, 255, 255, 0.1);
+            color: #4cc9f0;
         }
         
-        .time-display {
-            font-size: 14px;
-            color: #ccc;
+        .play-btn {
+            background: #4cc9f0;
+            color: #000;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 25px;
+        }
+        
+        .play-btn:hover {
+            background: #3ab0d9;
+            color: #000;
         }
         
         .quality-selector {
@@ -134,8 +140,8 @@
             position: absolute;
             bottom: 100%;
             right: 0;
-            background-color: rgba(0, 0, 0, 0.8);
-            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 5px;
             padding: 10px 0;
             min-width: 120px;
             display: none;
@@ -153,126 +159,51 @@
         }
         
         .quality-option:hover {
-            background-color: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.1);
         }
         
-        .quality-option.active {
-            color: #e50914;
+        .instructions {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: left;
         }
         
-        .play-pause-btn {
-            font-size: 24px;
+        .instructions h3 {
+            color: #4cc9f0;
+            margin-bottom: 10px;
         }
         
-        .netflix-logo {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            font-size: 4px;
-            font-weight: bold;
-            color: #e50914;
-            z-index: 5;
+        .instructions ul {
+            padding-left: 20px;
+            color: #a5b1c2;
         }
         
-        .auto-play-indicator {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            z-index: 5;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+        .instructions li {
+            margin-bottom: 8px;
         }
         
-        .volume-control {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-        
-        .volume-btn {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 18px;
-        }
-        
-        .volume-slider-container {
-            position: absolute;
-            bottom: 100%;
-            left: 0;
-            background-color: rgba(0, 0, 0, 0.8);
-            padding: 10px;
-            border-radius: 4px;
-            width: 80px;
-            display: none;
-        }
-        
-        .volume-control:hover .volume-slider-container {
-            display: block;
-        }
-        
-        .volume-slider {
-            width: 100%;
-            height: 4px;
-            -webkit-appearance: none;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 2px;
-            outline: none;
-        }
-        
-        .volume-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #e50914;
-            cursor: pointer;
-        }
-        
-        .volume-slider::-moz-range-thumb {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #e50914;
-            cursor: pointer;
-            border: none;
-        }
-        
-        @media (max-width: 768px) {
-            .player-controls {
-                padding: 10px;
-            }
-            
-            .controls-bottom {
-                flex-wrap: wrap;
-            }
-            
-            .right-controls {
-                margin-top: 10px;
-            }
-            
-            .control-btn {
-                font-size: 14px;
-            }
+        .github-info {
+            margin-top: 30px;
+            color: #a5b1c2;
+            font-size: 0.9rem;
         }
     </style>
 </head>
 <body>
-    <div class="video-player-container">
-        <div class="video-wrapper">
-            <div class="netflix-logo">filmyfly4wap</div>
-            <div class="auto-play-indicator">
-                <span>Auto Play</span>
-                <span>▶</span>
+    <div class="container">
+        <div class="header">
+            <h1>GitHub Pages Video Player</h1>
+            <p>GitHub Pages par video play karne ka solution</p>
+        </div>
+        
+        <div class="video-container">
+            <div class="video-wrapper">
+                <video id="video-player" poster="https://images.unsplash.com/photo-1611162617474-5b21e879e113?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80">
+                    Your browser does not support the video tag.
+                </video>
             </div>
-            <video id="video-player" autoplay muted></video>
             
             <div class="player-controls">
                 <div class="progress-container">
@@ -281,34 +212,24 @@
                 
                 <div class="controls-bottom">
                     <div class="left-controls">
-                        <button class="control-btn play-pause-btn">
-                            <span class="play-icon" style="display:none;">▶</span>
-                            <span class="pause-icon">❚❚</span>
+                        <button class="control-btn play-btn" id="play-button">
+                            ▶ Play Video
                         </button>
                         <div class="time-display">
-                            <span class="current-time">0:00</span> / <span class="duration">0:00</span>
-                        </div>
-                        <div class="volume-control">
-                            <button class="volume-btn">
-                                <span class="volume-icon">🔊</span>
-                            </button>
-                            <div class="volume-slider-container">
-                                <input type="range" class="volume-slider" min="0" max="1" step="0.1" value="1">
-                            </div>
+                            <span id="current-time">0:00</span> / <span id="duration">0:00</span>
                         </div>
                     </div>
                     
                     <div class="right-controls">
                         <div class="quality-selector">
                             <button class="control-btn quality-btn">
-                                Quality <span class="current-quality">Auto</span> ▼
+                                Quality Auto ▼
                             </button>
                             <div class="quality-dropdown">
-                                <div class="quality-option active" data-quality="auto">Auto</div>
-                                <div class="quality-option" data-quality="1080">1080p</div>
-                                <div class="quality-option" data-quality="720">720p</div>
-                                <div class="quality-option" data-quality="480">480p</div>
-                                <div class="quality-option" data-quality="360">360p</div>
+                                <div class="quality-option">Auto</div>
+                                <div class="quality-option">1080p</div>
+                                <div class="quality-option">720p</div>
+                                <div class="quality-option">480p</div>
                             </div>
                         </div>
                         
@@ -319,137 +240,60 @@
                 </div>
             </div>
         </div>
+        
+        <div class="instructions">
+            <h3>GitHub Pages par Video Play karne ke Tips:</h3>
+            <ul>
+                <li><strong>User Interaction Required:</strong> GitHub Pages par video sirf user click ke baad hi play ho sakta hai</li>
+                <li><strong>MP4 Format:</strong> MP4 videos sabse better work karte hain</li>
+                <li><strong>HTTPS:</strong> Video URLs HTTPS honi chahiye</li>
+                <li><strong>No Autoplay:</strong> Autoplay with sound allowed nahi hai</li>
+                <li><strong>File Size:</strong> Chote size ki videos use karein for faster loading</li>
+            </ul>
+        </div>
+        
+        <div class="github-info">
+            <p>GitHub Pages: fly4wap.github.io | Video Player Solution</p>
+        </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const video = document.getElementById('video-player');
-            const playPauseBtn = document.querySelector('.play-pause-btn');
-            const playIcon = document.querySelector('.play-icon');
-            const pauseIcon = document.querySelector('.pause-icon');
+            const playButton = document.getElementById('play-button');
             const progressBar = document.querySelector('.progress-bar');
             const progressContainer = document.querySelector('.progress-container');
-            const currentTimeEl = document.querySelector('.current-time');
-            const durationEl = document.querySelector('.duration');
+            const currentTimeEl = document.getElementById('current-time');
+            const durationEl = document.getElementById('duration');
             const fullscreenBtn = document.querySelector('.fullscreen-btn');
-            const qualityOptions = document.querySelectorAll('.quality-option');
-            const currentQuality = document.querySelector('.current-quality');
-            const videoContainer = document.querySelector('.video-player-container');
-            const autoPlayIndicator = document.querySelector('.auto-play-indicator');
-            const volumeBtn = document.querySelector('.volume-btn');
-            const volumeIcon = document.querySelector('.volume-icon');
-            const volumeSlider = document.querySelector('.volume-slider');
+            const videoContainer = document.querySelector('.video-container');
             
-            // Set video to autoplay (muted to comply with browser policies initially)
-            video.autoplay = true;
-            video.muted = true;
+            // Sample video URL (aap yahan apni video URL daal sakte hain)
+            const videoUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
             
-            // Auto-enable sound after a short delay (simulating user interaction)
-            setTimeout(() => {
-                // This simulates a user interaction to enable sound
-                video.muted = false;
-                video.volume = 0.7;
-                volumeSlider.value = 0.7;
-                updateVolumeIcon();
-                console.log('Sound enabled automatically');
-            }, 1000);
+            // Video source set karna
+            video.innerHTML = `<source src="${videoUrl}" type="video/mp4">`;
             
-            // Check if HLS is supported
-            if (Hls.isSupported()) {
-                const hls = new Hls({
-                    debug: false,
-                    autoStartLoad: true,
-                });
-                
-                // For demo purposes, using a sample HLS stream
-                const m3u8Url = 'http://217.20.112.199/sethd/index.m3u8';
-                
-                hls.loadSource(m3u8Url);
-                hls.attachMedia(video);
-                
-                hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                    console.log('Manifest parsed, video ready to play');
-                    updateDurationDisplay();
-                    
-                    // Auto-play the video
-                    video.play().then(() => {
-                        console.log('Video autoplay started');
-                        playIcon.style.display = 'none';
-                        pauseIcon.style.display = 'inline';
-                    }).catch(error => {
-                        console.log('Autoplay failed:', error);
-                        playIcon.style.display = 'inline';
-                        pauseIcon.style.display = 'none';
-                    });
-                });
-                
-                // Handle quality changes
-                qualityOptions.forEach(option => {
-                    option.addEventListener('click', function() {
-                        const quality = this.getAttribute('data-quality');
-                        qualityOptions.forEach(opt => opt.classList.remove('active'));
-                        this.classList.add('active');
-                        currentQuality.textContent = quality === 'auto' ? 'Auto' : quality + 'p';
-                        console.log('Quality changed to:', quality);
-                    });
-                });
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                // For Safari which supports HLS natively
-                video.src = 'http://217.20.112.199/sethd/index.m3u8';
-                video.addEventListener('loadedmetadata', function() {
-                    updateDurationDisplay();
-                    
-                    // Auto-play the video
-                    video.play().then(() => {
-                        console.log('Video autoplay started');
-                        playIcon.style.display = 'none';
-                        pauseIcon.style.display = 'inline';
-                    }).catch(error => {
-                        console.log('Autoplay failed:', error);
-                        playIcon.style.display = 'inline';
-                        pauseIcon.style.display = 'none';
-                    });
-                });
-            }
-            
-            // Play/Pause functionality
-            playPauseBtn.addEventListener('click', function() {
+            // Play button functionality
+            playButton.addEventListener('click', function() {
                 if (video.paused) {
-                    video.play();
-                    playIcon.style.display = 'none';
-                    pauseIcon.style.display = 'inline';
-                    autoPlayIndicator.style.display = 'flex';
+                    video.play()
+                        .then(() => {
+                            playButton.textContent = '❚❚ Pause';
+                            playButton.style.background = '#e74c3c';
+                        })
+                        .catch(error => {
+                            console.error('Video play failed:', error);
+                            alert('Video play nahi ho raha. Kya video URL sahi hai?');
+                        });
                 } else {
                     video.pause();
-                    playIcon.style.display = 'inline';
-                    pauseIcon.style.display = 'none';
-                    autoPlayIndicator.style.display = 'none';
+                    playButton.textContent = '▶ Play Video';
+                    playButton.style.background = '#4cc9f0';
                 }
             });
             
-            // Volume control
-            volumeBtn.addEventListener('click', function() {
-                video.muted = !video.muted;
-                updateVolumeIcon();
-            });
-            
-            volumeSlider.addEventListener('input', function() {
-                video.volume = this.value;
-                video.muted = (this.value == 0);
-                updateVolumeIcon();
-            });
-            
-            function updateVolumeIcon() {
-                if (video.muted || video.volume == 0) {
-                    volumeIcon.textContent = '🔇';
-                } else if (video.volume < 0.5) {
-                    volumeIcon.textContent = '🔈';
-                } else {
-                    volumeIcon.textContent = '🔊';
-                }
-            }
-            
-            // Update progress bar and time
+            // Progress bar update
             video.addEventListener('timeupdate', function() {
                 const currentTime = video.currentTime;
                 const duration = video.duration;
@@ -457,7 +301,16 @@
                 if (duration) {
                     const progressPercent = (currentTime / duration) * 100;
                     progressBar.style.width = `${progressPercent}%`;
+                    
+                    // Time display update
                     currentTimeEl.textContent = formatTime(currentTime);
+                }
+            });
+            
+            // Duration display
+            video.addEventListener('loadedmetadata', function() {
+                if (video.duration) {
+                    durationEl.textContent = formatTime(video.duration);
                 }
             });
             
@@ -472,7 +325,7 @@
             fullscreenBtn.addEventListener('click', function() {
                 if (!document.fullscreenElement) {
                     videoContainer.requestFullscreen().catch(err => {
-                        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                        console.error(`Fullscreen error: ${err.message}`);
                     });
                     fullscreenBtn.innerHTML = '⛶ Exit Fullscreen';
                 } else {
@@ -483,39 +336,30 @@
                 }
             });
             
-            // Update duration display when metadata is loaded
-            video.addEventListener('loadedmetadata', function() {
-                updateDurationDisplay();
+            // Video end pe reset
+            video.addEventListener('ended', function() {
+                playButton.textContent = '▶ Play Again';
+                playButton.style.background = '#4cc9f0';
             });
             
-            // Format time in mm:ss
+            // Time format function
             function formatTime(seconds) {
                 const mins = Math.floor(seconds / 60);
                 const secs = Math.floor(seconds % 60);
                 return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
             }
             
-            // Update duration display
-            function updateDurationDisplay() {
-                if (video.duration) {
-                    durationEl.textContent = formatTime(video.duration);
-                }
-            }
-            
-            // Handle video end
-            video.addEventListener('ended', function() {
-                playIcon.style.display = 'inline';
-                pauseIcon.style.display = 'none';
-                autoPlayIndicator.style.display = 'none';
+            // Quality selector functionality (basic)
+            document.querySelectorAll('.quality-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelector('.quality-btn').textContent = 
+                        `Quality ${this.textContent} ▼`;
+                    alert(`Quality changed to: ${this.textContent}`);
+                });
             });
             
-            // Hide auto-play indicator after 3 seconds
-            setTimeout(() => {
-                autoPlayIndicator.style.opacity = '0';
-                setTimeout(() => {
-                    autoPlayIndicator.style.display = 'none';
-                }, 1000);
-            }, 3000);
+            console.log('Video Player Loaded - GitHub Pages Compatible');
+            console.log('Video URL:', videoUrl);
         });
     </script>
 </body>
