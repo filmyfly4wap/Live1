@@ -14,12 +14,10 @@
         }
         
         body {
-            
             display: flex;
             justify-content: center;
             align-items: center;
-          
-        
+            
         }
         
         .video-player-container {
@@ -170,7 +168,7 @@
             position: absolute;
             top: 15px;
             left: 15px;
-            font-size: 24px;
+            font-size: 4px;
             font-weight: bold;
             color: #e50914;
             z-index: 5;
@@ -189,6 +187,62 @@
             display: flex;
             align-items: center;
             gap: 5px;
+        }
+        
+        .volume-control {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .volume-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        .volume-slider-container {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 4px;
+            width: 80px;
+            display: none;
+        }
+        
+        .volume-control:hover .volume-slider-container {
+            display: block;
+        }
+        
+        .volume-slider {
+            width: 100%;
+            height: 4px;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            outline: none;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e50914;
+            cursor: pointer;
+        }
+        
+        .volume-slider::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e50914;
+            cursor: pointer;
+            border: none;
         }
         
         @media (max-width: 768px) {
@@ -213,7 +267,7 @@
 <body>
     <div class="video-player-container">
         <div class="video-wrapper">
-            <div class="netflix-logo">N</div>
+            <div class="netflix-logo">filmyfly4wap</div>
             <div class="auto-play-indicator">
                 <span>Auto Play</span>
                 <span>▶</span>
@@ -233,6 +287,14 @@
                         </button>
                         <div class="time-display">
                             <span class="current-time">0:00</span> / <span class="duration">0:00</span>
+                        </div>
+                        <div class="volume-control">
+                            <button class="volume-btn">
+                                <span class="volume-icon">🔊</span>
+                            </button>
+                            <div class="volume-slider-container">
+                                <input type="range" class="volume-slider" min="0" max="1" step="0.1" value="1">
+                            </div>
                         </div>
                     </div>
                     
@@ -274,21 +336,32 @@
             const currentQuality = document.querySelector('.current-quality');
             const videoContainer = document.querySelector('.video-player-container');
             const autoPlayIndicator = document.querySelector('.auto-play-indicator');
+            const volumeBtn = document.querySelector('.volume-btn');
+            const volumeIcon = document.querySelector('.volume-icon');
+            const volumeSlider = document.querySelector('.volume-slider');
             
-            // Set video to autoplay (muted to comply with browser policies)
+            // Set video to autoplay (muted to comply with browser policies initially)
             video.autoplay = true;
             video.muted = true;
+            
+            // Auto-enable sound after a short delay (simulating user interaction)
+            setTimeout(() => {
+                // This simulates a user interaction to enable sound
+                video.muted = false;
+                video.volume = 0.7;
+                volumeSlider.value = 0.7;
+                updateVolumeIcon();
+                console.log('Sound enabled automatically');
+            }, 1000);
             
             // Check if HLS is supported
             if (Hls.isSupported()) {
                 const hls = new Hls({
                     debug: false,
                     autoStartLoad: true,
-                    // You can add more HLS configuration options here
                 });
                 
                 // For demo purposes, using a sample HLS stream
-                // Replace with your actual M3U8 URL
                 const m3u8Url = 'http://217.20.112.199/sethd/index.m3u8';
                 
                 hls.loadSource(m3u8Url);
@@ -296,18 +369,15 @@
                 
                 hls.on(Hls.Events.MANIFEST_PARSED, function() {
                     console.log('Manifest parsed, video ready to play');
-                    // Set initial duration display
                     updateDurationDisplay();
                     
                     // Auto-play the video
                     video.play().then(() => {
                         console.log('Video autoplay started');
-                        // Update button to show pause icon since video is playing
                         playIcon.style.display = 'none';
                         pauseIcon.style.display = 'inline';
                     }).catch(error => {
                         console.log('Autoplay failed:', error);
-                        // If autoplay fails, show play button
                         playIcon.style.display = 'inline';
                         pauseIcon.style.display = 'none';
                     });
@@ -317,35 +387,25 @@
                 qualityOptions.forEach(option => {
                     option.addEventListener('click', function() {
                         const quality = this.getAttribute('data-quality');
-                        
-                        // Remove active class from all options
                         qualityOptions.forEach(opt => opt.classList.remove('active'));
-                        // Add active class to clicked option
                         this.classList.add('active');
-                        
-                        // Update current quality display
                         currentQuality.textContent = quality === 'auto' ? 'Auto' : quality + 'p';
-                        
-                        // In a real implementation, you would change the quality here
-                        // hls.currentLevel = quality === 'auto' ? -1 : parseInt(quality);
                         console.log('Quality changed to:', quality);
                     });
                 });
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                 // For Safari which supports HLS natively
-                video.src = ' http://217.20.112.199/sethd/index.m3u8  ';
+                video.src = 'http://217.20.112.199/sethd/index.m3u8';
                 video.addEventListener('loadedmetadata', function() {
                     updateDurationDisplay();
                     
                     // Auto-play the video
                     video.play().then(() => {
                         console.log('Video autoplay started');
-                        // Update button to show pause icon since video is playing
                         playIcon.style.display = 'none';
                         pauseIcon.style.display = 'inline';
                     }).catch(error => {
                         console.log('Autoplay failed:', error);
-                        // If autoplay fails, show play button
                         playIcon.style.display = 'inline';
                         pauseIcon.style.display = 'none';
                     });
@@ -367,6 +427,28 @@
                 }
             });
             
+            // Volume control
+            volumeBtn.addEventListener('click', function() {
+                video.muted = !video.muted;
+                updateVolumeIcon();
+            });
+            
+            volumeSlider.addEventListener('input', function() {
+                video.volume = this.value;
+                video.muted = (this.value == 0);
+                updateVolumeIcon();
+            });
+            
+            function updateVolumeIcon() {
+                if (video.muted || video.volume == 0) {
+                    volumeIcon.textContent = '🔇';
+                } else if (video.volume < 0.5) {
+                    volumeIcon.textContent = '🔈';
+                } else {
+                    volumeIcon.textContent = '🔊';
+                }
+            }
+            
             // Update progress bar and time
             video.addEventListener('timeupdate', function() {
                 const currentTime = video.currentTime;
@@ -375,8 +457,6 @@
                 if (duration) {
                     const progressPercent = (currentTime / duration) * 100;
                     progressBar.style.width = `${progressPercent}%`;
-                    
-                    // Update time display
                     currentTimeEl.textContent = formatTime(currentTime);
                 }
             });
@@ -438,73 +518,5 @@
             }, 3000);
         });
     </script>
-</body>
-</html>    </div>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-<script>
-  const video = document.getElementById('video');
-const playBtn = document.getElementById('play');
-const pauseBtn = document.getElementById('pause');
-const fullscreenBtn = document.getElementById('fullscreen');
-const volumeSlider = document.getElementById('volume');
-const progress = document.getElementById('progress');
-const progressContainer = document.getElementById('progress-container');
-
-// Apna M3U8 URL yaha dale
-const m3u8Url = 'http://217.20.112.199/sethd/index.m3u8';
-
-// Load M3U8
-if(Hls.isSupported()) {
-  const hls = new Hls();
-  hls.loadSource(m3u8Url);
-  hls.attachMedia(video);
-  hls.on(Hls.Events.MANIFEST_PARSED, () => {
-    console.log('Stream Loaded');
-  });
-} else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-  video.src = m3u8Url;
-} else {
-  alert('Your browser does not support M3U8 playback');
-}
-
-// Play / Pause
-playBtn.addEventListener('click', () => video.play());
-pauseBtn.addEventListener('click', () => video.pause());
-
-// Volume control
-volumeSlider.addEventListener('input', (e) => {
-  video.volume = e.target.value;
-});
-
-// Fullscreen
-fullscreenBtn.addEventListener('click', () => {
-  if (document.fullscreenElement) {
-    document.exitFullscreen();
-  } else {
-    video.parentElement.requestFullscreen();
-  }
-});
-
-// Progress bar update
-video.addEventListener('timeupdate', () => {
-  if(video.duration){
-    const percent = (video.currentTime / video.duration) * 100;
-    progress.style.width = percent + '%';
-  }
-});
-
-// Click to seek
-progressContainer.addEventListener('click', (e) => {
-  if(video.duration){
-    const rect = progressContainer.getBoundingClientRect();
-    const pos = (e.clientX - rect.left) / rect.width;
-    video.currentTime = pos * video.duration;
-  }
-});
-</script> 
-<script src="script.js"></script>
 </body>
 </html>
