@@ -1,513 +1,101 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>M3U8 Live Video Player - GitHub Pages</title>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Arial', sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            color: white;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 900px;
-            width: 100%;
-            text-align: center;
-        }
-        
-        .header {
-            margin-bottom: 30px;
-        }
-        
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            color: #4cc9f0;
-        }
-        
-        .header p {
-            color: #a5b1c2;
-            font-size: 1.1rem;
-        }
-        
-        .video-container {
-            background: #0f0f23;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            margin-bottom: 30px;
-        }
-        
-        .video-wrapper {
-            position: relative;
-            width: 100%;
-            border-radius: 10px;
-            overflow: hidden;
-            background: #000;
-            margin-bottom: 20px;
-        }
-        
-        #video-player {
-            width: 100%;
-            height: auto;
-            display: block;
-            border-radius: 8px;
-        }
-        
-        .url-input-section {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        
-        #m3u8-url {
-            flex: 1;
-            padding: 12px 15px;
-            border: none;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            font-size: 16px;
-        }
-        
-        #m3u8-url::placeholder {
-            color: #a5b1c2;
-        }
-        
-        .load-btn {
-            background: #4cc9f0;
-            color: #000;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.3s;
-        }
-        
-        .load-btn:hover {
-            background: #3ab0d9;
-        }
-        
-        .player-controls {
-            background: rgba(0, 0, 0, 0.8);
-            padding: 15px;
-            border-radius: 8px;
-        }
-        
-        .progress-container {
-            width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
-            margin-bottom: 15px;
-            cursor: pointer;
-        }
-        
-        .progress-bar {
-            height: 100%;
-            background: #4cc9f0;
-            border-radius: 3px;
-            width: 0%;
-            transition: width 0.1s;
-        }
-        
-        .controls-bottom {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .left-controls, .right-controls {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .control-btn {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 16px;
-            padding: 8px 12px;
-            border-radius: 5px;
-            transition: all 0.3s;
-        }
-        
-        .control-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #4cc9f0;
-        }
-        
-        .play-btn {
-            background: #4cc9f0;
-            color: #000;
-            font-weight: bold;
-            padding: 10px 20px;
-            border-radius: 25px;
-        }
-        
-        .play-btn:hover {
-            background: #3ab0d9;
-            color: #000;
-        }
-        
-        .quality-selector {
-            position: relative;
-        }
-        
-        .quality-dropdown {
-            position: absolute;
-            bottom: 100%;
-            right: 0;
-            background: rgba(0, 0, 0, 0.9);
-            border-radius: 5px;
-            padding: 10px 0;
-            min-width: 120px;
-            display: none;
-            z-index: 10;
-        }
-        
-        .quality-selector:hover .quality-dropdown {
-            display: block;
-        }
-        
-        .quality-option {
-            padding: 8px 15px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        .quality-option:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .status-message {
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            text-align: left;
-        }
-        
-        .status-success {
-            background: rgba(76, 201, 240, 0.1);
-            border-left: 4px solid #4cc9f0;
-        }
-        
-        .status-error {
-            background: rgba(231, 76, 60, 0.1);
-            border-left: 4px solid #e74c3c;
-        }
-        
-        .status-warning {
-            background: rgba(241, 196, 15, 0.1);
-            border-left: 4px solid #f1c40f;
-        }
-        
-        .instructions {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-            text-align: left;
-        }
-        
-        .instructions h3 {
-            color: #4cc9f0;
-            margin-bottom: 10px;
-        }
-        
-        .instructions ul {
-            padding-left: 20px;
-            color: #a5b1c2;
-        }
-        
-        .instructions li {
-            margin-bottom: 8px;
-        }
-        
-        .github-info {
-            margin-top: 30px;
-            color: #a5b1c2;
-            font-size: 0.9rem;
-        }
-        
-        .hidden {
-            display: none;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M3U8 Player with Quality & Subtitles</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.6.0/controls.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp">
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { background:#000; height:100vh; width:100vw; overflow:hidden; font-family:system-ui,sans-serif; }
+.shaka-video-container { position:absolute; inset:0; width:100%; height:100%; }
+video { width:100%; height:100%; object-fit:contain; background:#000; }
+.youtube-theme { font-family:'Roboto',sans-serif; }
+.youtube-theme .shaka-controls-button-panel > * { color:#EEE; height:40px; margin:0; padding:3px 8px; }
+.youtube-theme .shaka-seek-bar-container input[type=range]::-webkit-slider-thumb { background:#FF0000; cursor:pointer; }
+.youtube-theme .shaka-seek-bar-container input[type=range]::-moz-range-thumb { background:#FF0000; cursor:pointer; }
+.youtube-theme .shaka-seek-bar-container input[type=range]::-ms-thumb { background:#FF0000; cursor:pointer; }
+.manual-play-button { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  background:rgba(0,0,0,0.8); color:white; padding:20px 30px; border-radius:8px;
+  cursor:pointer; font-size:18px; z-index:2000; border:2px solid #ff0000; display:none; transition:all 0.3s ease;
+}
+.manual-play-button:hover { background:rgba(255,0,0,0.8); transform:translate(-50%,-50%) scale(1.05); }
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>M3U8 Live Video Player</h1>
-            <p>GitHub Pages Compatible HLS Stream Player</p>
-        </div>
-        
-        <div class="video-container">
-            <div class="url-input-section">
-                <div class="input-group">
-                    <input type="url" id="m3u8-url" placeholder="Enter your M3U8 stream URL here..." value="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8">
-                    <button class="load-btn" id="load-stream">Load Stream</button>
-                </div>
-                <p style="color: #a5b1c2; font-size: 0.9rem;">Sample URL: https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8</p>
-            </div>
-            
-            <div id="status-area"></div>
-            
-            <div class="video-wrapper">
-                <video id="video-player" controls>
-                    Your browser does not support the video tag.
-                </video>
-            </div>
-            
-            <div class="player-controls">
-                <div class="progress-container">
-                    <div class="progress-bar"></div>
-                </div>
-                
-                <div class="controls-bottom">
-                    <div class="left-controls">
-                        <button class="control-btn play-btn" id="play-button">
-                            ▶ Play
-                        </button>
-                        <div class="time-display">
-                            <span id="current-time">0:00</span> / <span id="duration">0:00</span>
-                        </div>
-                    </div>
-                    
-                    <div class="right-controls">
-                        <div class="quality-selector">
-                            <button class="control-btn quality-btn">
-                                Quality Auto ▼
-                            </button>
-                            <div class="quality-dropdown">
-                                <div class="quality-option">Auto</div>
-                                <div class="quality-option">1080p</div>
-                                <div class="quality-option">720p</div>
-                                <div class="quality-option">480p</div>
-                            </div>
-                        </div>
-                        
-                        <button class="control-btn fullscreen-btn">
-                            ⛶ Fullscreen
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="instructions">
-            <h3>GitHub Pages pe M3U8 Stream kaise play karein:</h3>
-            <ul>
-                <li><strong>CORS Proxy Required:</strong> External M3U8 streams ke liye CORS proxy chahiye</li>
-                <li><strong>HTTPS Streams:</strong> Sirf HTTPS wale streams work karte hain</li>
-                <li><strong>Public Streams:</strong> Publicly accessible streams hi work karenge</li>
-                <li><strong>Alternative:</strong> Agar stream nahi chal raha toh MP4 format use karein</li>
-            </ul>
-            
-            <h3>Working M3U8 Test URLs:</h3>
-            <ul>
-                <li>http://217.20.112.199/sethd/index.m3u8</li>
-                <li>http://217.20.112.199/sethd/index.m3u8</li>
-            </ul>
-        </div>
-        
-        <div class="github-info">
-            <p>GitHub Pages: fly4wap.github.io | M3U8 Live Video Player</p>
-        </div>
-    </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const video = document.getElementById('video-player');
-            const playButton = document.getElementById('play-button');
-            const loadStreamBtn = document.getElementById('load-stream');
-            const m3u8UrlInput = document.getElementById('m3u8-url');
-            const progressBar = document.querySelector('.progress-bar');
-            const progressContainer = document.querySelector('.progress-container');
-            const currentTimeEl = document.getElementById('current-time');
-            const durationEl = document.getElementById('duration');
-            const fullscreenBtn = document.querySelector('.fullscreen-btn');
-            const videoContainer = document.querySelector('.video-container');
-            const statusArea = document.getElementById('status-area');
-            
-            let hls = null;
-            
-            function showStatus(message, type = 'info') {
-                statusArea.innerHTML = `
-                    <div class="status-message status-${type}">
-                        ${message}
-                    </div>
-                `;
-            }
-            
-            function loadM3U8Stream(url) {
-                // Clear previous status
-                showStatus('Loading stream...', 'warning');
-                
-                // Clean up previous HLS instance
-                if (hls) {
-                    hls.destroy();
-                }
-                
-                // Check if HLS is supported
-                if (Hls.isSupported()) {
-                    hls = new Hls({
-                        debug: false,
-                        enableWorker: true,
-                        lowLatencyMode: true,
-                        backBufferLength: 90
-                    });
-                    
-                    hls.loadSource(url);
-                    hls.attachMedia(video);
-                    
-                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                        showStatus('Stream loaded successfully! Click Play to start.', 'success');
-                        playButton.disabled = false;
-                    });
-                    
-                    hls.on(Hls.Events.ERROR, function(event, data) {
-                        console.error('HLS Error:', data);
-                        if (data.fatal) {
-                            switch(data.type) {
-                                case Hls.ErrorTypes.NETWORK_ERROR:
-                                    showStatus('Network Error: Cannot load stream. CORS issue?', 'error');
-                                    break;
-                                case Hls.ErrorTypes.MEDIA_ERROR:
-                                    showStatus('Media Error: Stream format not supported', 'error');
-                                    break;
-                                default:
-                                    showStatus('Unknown error loading stream', 'error');
-                                    break;
-                            }
-                        }
-                    });
-                    
-                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    // Safari native support
-                    video.src = url;
-                    video.addEventListener('loadedmetadata', function() {
-                        showStatus('Stream loaded successfully! Click Play to start.', 'success');
-                        playButton.disabled = false;
-                    });
-                } else {
-                    showStatus('HLS not supported in your browser', 'error');
-                }
-            }
-            
-            // Load stream button
-            loadStreamBtn.addEventListener('click', function() {
-                const url = m3u8UrlInput.value.trim();
-                if (url) {
-                    loadM3U8Stream(url);
-                } else {
-                    showStatus('Please enter a valid M3U8 URL', 'error');
-                }
-            });
-            
-            // Play button functionality
-            playButton.addEventListener('click', function() {
-                if (video.paused) {
-                    video.play()
-                        .then(() => {
-                            playButton.textContent = '❚❚ Pause';
-                            playButton.style.background = '#e74c3c';
-                        })
-                        .catch(error => {
-                            console.error('Video play failed:', error);
-                            showStatus('Cannot play video: ' + error.message, 'error');
-                        });
-                } else {
-                    video.pause();
-                    playButton.textContent = '▶ Play';
-                    playButton.style.background = '#4cc9f0';
-                }
-            });
-            
-            // Progress bar update
-            video.addEventListener('timeupdate', function() {
-                const currentTime = video.currentTime;
-                const duration = video.duration;
-                
-                if (duration) {
-                    const progressPercent = (currentTime / duration) * 100;
-                    progressBar.style.width = `${progressPercent}%`;
-                    
-                    currentTimeEl.textContent = formatTime(currentTime);
-                }
-            });
-            
-            // Duration display
-            video.addEventListener('loadedmetadata', function() {
-                if (video.duration) {
-                    durationEl.textContent = formatTime(video.duration);
-                }
-            });
-            
-            // Seek functionality
-            progressContainer.addEventListener('click', function(e) {
-                const rect = this.getBoundingClientRect();
-                const percent = (e.clientX - rect.left) / rect.width;
-                video.currentTime = percent * video.duration;
-            });
-            
-            // Fullscreen functionality
-            fullscreenBtn.addEventListener('click', function() {
-                if (!document.fullscreenElement) {
-                    videoContainer.requestFullscreen().catch(err => {
-                        console.error(`Fullscreen error: ${err.message}`);
-                    });
-                    fullscreenBtn.innerHTML = '⛶ Exit Fullscreen';
-                } else {
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen();
-                        fullscreenBtn.innerHTML = '⛶ Fullscreen';
-                    }
-                }
-            });
-            
-            // Video end pe reset
-            video.addEventListener('ended', function() {
-                playButton.textContent = '▶ Play Again';
-                playButton.style.background = '#4cc9f0';
-            });
-            
-            // Time format function
-            function formatTime(seconds) {
-                const mins = Math.floor(seconds / 60);
-                const secs = Math.floor(seconds % 60);
-                return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-            }
-            
-            // Load sample stream on page load
-            loadM3U8Stream('http://217.20.112.199/sethd/index.m3u8');
-            
-            console.log('M3U8 Video Player Loaded - GitHub Pages Compatible');
-        });
-    </script>
+<div class="shaka-video-container youtube-theme" data-shaka-player>
+  <video autoplay muted playsinline preload="auto"></video>
+  <div class="manual-play-button" id="manualPlayButton">▶ Click to Play</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.6.0/shaka-player.ui.min.js"></script>
+<script>
+const queryParams = new URLSearchParams(window.location.search);
+const m3u8Url = queryParams.get('url'); // M3U8 URL
+
+document.addEventListener('DOMContentLoaded', async () => {
+  shaka.polyfill.installAll();
+  if (!shaka.Player.isBrowserSupported()) { console.error('Browser not supported'); return; }
+
+  const video = document.querySelector('video');
+  const container = document.querySelector('.shaka-video-container');
+  const player = new shaka.Player();
+  await player.attach(video);
+
+  const ui = new shaka.ui.Overlay(player, container, video);
+  ui.configure({
+    controlPanelElements: [
+      'play_pause','time_and_duration','mute','volume','spacer',
+      'captions','quality','language','picture_in_picture','fullscreen','overflow_menu'
+    ]
+  });
+
+  // Enable automatic ABR & show all available tracks
+  player.configure({
+    streaming: {
+      rebufferingGoal: 2,
+      bufferingGoal: 15,
+      bufferBehind: 15,
+      lowLatencyMode: true
+    }
+  });
+
+  // Load M3U8 stream
+  try {
+    await player.load(m3u8Url);
+    console.log('M3U8 Loaded:', m3u8Url);
+  } catch(e) { console.error('Failed to load M3U8:', e); }
+
+  // Autoplay handling
+  const attemptAutoplay = async () => {
+    try { video.muted=false; await video.play(); return true; }
+    catch { try { video.muted=true; await video.play(); return true; } catch(e) { return false; } }
+  };
+  await attemptAutoplay();
+
+  // User interaction for sound
+  let hasUserInteracted=false;
+  const enableSound=()=>{ if(!hasUserInteracted && video.muted){ video.muted=false; hasUserInteracted=true; } };
+  ['click','touchstart','keydown'].forEach(e => document.addEventListener(e, enableSound, {once:true}));
+
+  // Autoplay resume on visibility change
+  document.addEventListener('visibilitychange', () => { if(!document.hidden && video.paused){ attemptAutoplay(); } });
+
+  // Subtitles toggle example
+  const textTracks = video.textTracks;
+  if(textTracks && textTracks.length > 0){
+    textTracks[0].mode = 'showing'; // default first track
+  }
+
+  // Optional: dynamically list available quality tracks in console
+  const variants = player.getVariantTracks();
+  console.log('Available qualities:', variants.map(v=>({height:v.height,width:v.width,bitrate:v.bandwidth})));
+});
+</script>
+
 </body>
 </html>
