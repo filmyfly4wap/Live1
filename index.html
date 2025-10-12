@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>M3U8 Player with Quality & Subtitles</title>
+<title>M3U8 Player with CORS Proxy</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.6.0/controls.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp">
@@ -35,7 +35,11 @@ video { width:100%; height:100%; object-fit:contain; background:#000; }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.6.0/shaka-player.ui.min.js"></script>
 <script>
 const queryParams = new URLSearchParams(window.location.search);
-const m3u8Url = queryParams.get('url'); // M3U8 URL
+const originalUrl = queryParams.get('url'); // Your original M3U8 URL
+
+// CORS Proxy (for testing only)
+// You can change proxy to any free service
+const proxiedUrl = 'https://corsproxy.io/?' + encodeURIComponent(originalUrl);
 
 document.addEventListener('DOMContentLoaded', async () => {
   shaka.polyfill.installAll();
@@ -54,7 +58,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     ]
   });
 
-  // Enable automatic ABR & show all available tracks
   player.configure({
     streaming: {
       rebufferingGoal: 2,
@@ -64,11 +67,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Load M3U8 stream
+  // Load M3U8 via CORS proxy
   try {
-    await player.load(m3u8Url);
-    console.log('M3U8 Loaded:', m3u8Url);
-  } catch(e) { console.error('Failed to load M3U8:', e); }
+    await player.load(proxiedUrl);
+    console.log('M3U8 Loaded via proxy:', proxiedUrl);
+  } catch(e) {
+    console.error('Failed to load M3U8:', e);
+  }
 
   // Autoplay handling
   const attemptAutoplay = async () => {
@@ -84,16 +89,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Autoplay resume on visibility change
   document.addEventListener('visibilitychange', () => { if(!document.hidden && video.paused){ attemptAutoplay(); } });
-
-  // Subtitles toggle example
-  const textTracks = video.textTracks;
-  if(textTracks && textTracks.length > 0){
-    textTracks[0].mode = 'showing'; // default first track
-  }
-
-  // Optional: dynamically list available quality tracks in console
-  const variants = player.getVariantTracks();
-  console.log('Available qualities:', variants.map(v=>({height:v.height,width:v.width,bitrate:v.bandwidth})));
 });
 </script>
 
