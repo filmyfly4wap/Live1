@@ -1,648 +1,262 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>M3U8 Live Player</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.6.0/shaka-player.ui.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.6.0/controls.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body {
-            background: #000;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-            font-family: system-ui, -apple-system, sans-serif;
-        }
-        .shaka-video-container {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-        }
-        video {
-            width: 100%;
-            height: 100%;
-            background: #000;
-            object-fit: contain;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>filmyfly4wap</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.0/dist/hls.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dplayer@1.26.0/dist/DPlayer.min.js"></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+    }
 
-        /* YouTube Theme CSS */
-        @font-face {
-            font-family: 'Roboto';
-            font-style: normal;
-            font-weight: 400;
-            font-display: swap;
-            src: url(https://fonts.gstatic.com/s/roboto/v27/KFOmCnqEu92Fr1Me5Q.ttf) format('truetype');
-        }
-        @font-face {
-            font-family: 'Roboto';
-            font-style: normal;
-            font-weight: 500;
-            font-display: swap;
-            src: url(https://fonts.gstatic.com/s/roboto/v27/KFOlCnqEu92Fr1MmEU9vAw.ttf) format('truetype');
-        }
-        .youtube-theme {
-            font-family: 'Roboto', sans-serif;
-        }
-        .youtube-theme .shaka-bottom-controls {
-            width: 100%;
-            padding: 0;
-            padding-bottom: 0;
-            z-index: 1;
-        }
-        .youtube-theme .shaka-bottom-controls {
-            display: -webkit-box;
-            display: -ms-flexbox;
-            display: flex;
-            -webkit-box-orient: vertical;
-            -webkit-box-direction: normal;
-                -ms-flex-direction: column;
-                    flex-direction: column;
-        }
-        .youtube-theme .shaka-ad-controls {
-            -webkit-box-ordinal-group: 2;
-                -ms-flex-order: 1;
-                    order: 1;
-        }
-        .youtube-theme .shaka-controls-button-panel {
-            -webkit-box-ordinal-group: 3;
-                -ms-flex-order: 2;
-                    order: 2;
-            height: 40px;
-            padding: 0 10px;
-        }
-        .youtube-theme .shaka-range-container {
-            margin: 4px 10px 4px 10px;
-            top: 0;
-        }
-        .youtube-theme .shaka-small-play-button {
-            -webkit-box-ordinal-group: -2;
-                -ms-flex-order: -3;
-                    order: -3;
-        }
-        .youtube-theme .shaka-mute-button {
-            -webkit-box-ordinal-group: -1;
-                -ms-flex-order: -2;
-                    order: -2;
-        }
-        .youtube-theme .shaka-controls-button-panel > * {
-            margin: 0;
-            padding: 3px 8px;
-            color: #EEE;
-            height: 40px;
-        }
-        .youtube-theme .shaka-controls-button-panel > *:focus {
-            outline: none;
-            -webkit-box-shadow: inset 0 0 0 2px rgba(27, 127, 204, 0.8);
-                    box-shadow: inset 0 0 0 2px rgba(27, 127, 204, 0.8);
-            color: #FFF;
-        }
-        .youtube-theme .shaka-controls-button-panel > *:hover {
-            color: #FFF;
-        }
-        .youtube-theme .shaka-controls-button-panel .shaka-volume-bar-container {
-            position: relative;
-            z-index: 10;
-            left: -1px;
-            -webkit-box-ordinal-group: 0;
-                -ms-flex-order: -1;
-                    order: -1;
-            opacity: 0;
-            width: 0px;
-            -webkit-transition: width 0.2s cubic-bezier(0.4, 0, 1, 1);
-            height: 3px;
-            transition: width 0.2s cubic-bezier(0.4, 0, 1, 1);
-            padding: 0;
-        }
-        .youtube-theme .shaka-controls-button-panel .shaka-volume-bar-container:hover,
-        .youtube-theme .shaka-controls-button-panel .shaka-volume-bar-container:focus {
-            display: block;
-            width: 50px;
-            opacity: 1;
-            padding: 0 6px;
-        }
-        .youtube-theme .shaka-mute-button:hover + div {
-            opacity: 1;
-            width: 50px;
-            padding: 0 6px;
-        }
-        .youtube-theme .shaka-current-time {
-            padding: 0 10px;
-            font-size: 12px;
-        }
-        .youtube-theme .shaka-seek-bar-container {
-            height: 3px;
-            position: relative;
-            top: -1px;
-            border-radius: 0;
-            margin-bottom: 0;
-        }
-        .youtube-theme .shaka-seek-bar-container .shaka-range-element {
-            opacity: 0;
-        }
-        .youtube-theme .shaka-seek-bar-container:hover {
-            height: 5px;
-            top: 0;
-            cursor: pointer;
-        }
-        .youtube-theme .shaka-seek-bar-container:hover .shaka-range-element {
-            opacity: 1;
-            cursor: pointer;
-        }
-        .youtube-theme .shaka-seek-bar-container input[type=range]::-webkit-slider-thumb {
-            background: #FF0000;
-            cursor: pointer;
-        }
-        .youtube-theme .shaka-seek-bar-container input[type=range]::-moz-range-thumb {
-            background: #FF0000;
-            cursor: pointer;
-        }
-        .youtube-theme .shaka-seek-bar-container input[type=range]::-ms-thumb {
-            background: #FF0000;
-            cursor: pointer;
-        }
-        .youtube-theme .shaka-video-container * {
-            font-family: 'Roboto', sans-serif;
-        }
-        .youtube-theme .shaka-video-container .material-icons-round {
-            font-family: 'Material Icons Sharp';
-        }
-        .youtube-theme .shaka-overflow-menu,
-        .youtube-theme .shaka-settings-menu {
-            border-radius: 2px;
-            background: rgba(28, 28, 28, 0.9);
-            text-shadow: 0 0 2px rgb(0 0 0%);
-            -webkit-transition: opacity 0.1s cubic-bezier(0, 0, 0.2, 1);
-            transition: opacity 0.1s cubic-bezier(0, 0, 0.2, 1);
-            -moz-user-select: none;
-            -ms-user-select: none;
-            -webkit-user-select: none;
-            right: 10px;
-            bottom: 50px;
-            padding: 8px 0;
-            min-width: 200px;
-        }
-        .youtube-theme .shaka-settings-menu {
-            padding: 0 0 8px 0;
-        }
-        .youtube-theme .shaka-settings-menu button {
-            font-size: 12px;
-        }
-        .youtube-theme .shaka-settings-menu button span {
-            margin-left: 33px;
-            font-size: 13px;
-        }
-        .youtube-theme .shaka-settings-menu button[aria-selected="true"] {
-            display: -webkit-box;
-            display: -ms-flexbox;
-            display: flex;
-        }
-        .youtube-theme .shaka-settings-menu button[aria-selected="true"] span {
-            -webkit-box-ordinal-group: 3;
-                -ms-flex-order: 2;
-                    order: 2;
-            margin-left: 0;
-        }
-        .youtube-theme .shaka-settings-menu button[aria-selected="true"] i {
-            -webkit-box-ordinal-group: 2;
-                -ms-flex-order: 1;
-                    order: 1;
-            font-size: 18px;
-            padding-left: 5px;
-        }
-        .youtube-theme .shaka-overflow-menu button {
-            padding: 0;
-        }
-        .youtube-theme .shaka-overflow-menu button i {
-            display: none;
-        }
-        .youtube-theme .shaka-overflow-menu button .shaka-overflow-button-label {
-            display: -webkit-box;
-            display: -ms-flexbox;
-            display: flex;
-            -webkit-box-pack: justify;
-                -ms-flex-pack: justify;
-                    justify-content: space-between;
-            -webkit-box-orient: horizontal;
-            -webkit-box-direction: normal;
-                -ms-flex-direction: row;
-                    flex-direction: row;
-            -webkit-box-align: center;
-                -ms-flex-align: center;
-                    align-items: center;
-            cursor: default;
-            outline: none;
-            height: 40px;
-            -webkit-box-flex: 0;
-                -ms-flex: 0 0 100%;
-                    flex: 0 0 100%;
-        }
-        .youtube-theme .shaka-overflow-menu button .shaka-overflow-button-label span {
-            -ms-flex-negative: initial;
-                flex-shrink: initial;
-            padding-left: 15px;
-            font-size: 13px;
-            font-weight: 500;
-            display: -webkit-box;
-            display: -ms-flexbox;
-            display: flex;
-            -webkit-box-align: center;
-                -ms-flex-align: center;
-                    align-items: center;
-        }
-        .youtube-theme .shaka-overflow-menu span + span {
-            color: #FFF;
-            font-weight: 400 !important;
-            font-size: 12px !important;
-            padding-right: 8px;
-            padding-left: 0 !important;
-        }
-        .youtube-theme .shaka-overflow-menu span + span:after {
-            content: "navigate_next";
-            font-family: 'Material Icons Sharp';
-            font-size: 20px;
-        }
-        .youtube-theme .shaka-overflow-menu .shaka-pip-button span + span {
-            padding-right: 15px !important;
-        }
-        .youtube-theme .shaka-overflow-menu .shaka-pip-button span + span:after {
-            content: "";
-        }
-        .youtube-theme .shaka-back-to-overflow-button {
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            font-size: 12px;
-            color: #eee;
-            height: 40px;
-        }
-        .youtube-theme .shaka-back-to-overflow-button .material-icons-round {
-            font-size: 15px;
-            padding-right: 10px;
-        }
-        .youtube-theme .shaka-back-to-overflow-button span {
-            margin-left: 3px !important;
-        }
-        .youtube-theme .shaka-overflow-menu button:hover,
-        .youtube-theme .shaka-settings-menu button:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            cursor: pointer;
-        }
-        .youtube-theme .shaka-overflow-menu button:hover label,
-        .youtube-theme .shaka-settings-menu button:hover label {
-            cursor: pointer;
-        }
-        .youtube-theme .shaka-overflow-menu button:focus,
-        .youtube-theme .shaka-settings-menu button:focus {
-            background-color: rgba(255, 255, 255, 0.1);
-            border: none;
-            outline: none;
-        }
-        .youtube-theme .shaka-overflow-menu button,
-        .youtube-theme .shaka-settings-menu button {
-            color: #EEE;
-        }
-        .youtube-theme .shaka-captions-off {
-            color: #BFBFBF;
-        }
-        .youtube-theme .shaka-overflow-menu-button {
-            font-size: 18px;
-            margin-right: 5px;
-        }
-        .youtube-theme .shaka-fullscreen-button:hover {
-            font-size: 25px;
-            -webkit-transition: font-size 0.1s cubic-bezier(0, 0, 0.2, 1);
-            transition: font-size 0.1s cubic-bezier(0, 0, 0.2, 1);
-        }
+    #dplayer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
 
-        /* Hide center loading spinner */
-        .shaka-spinner-container,
-        .shaka-spinner,
-        .shaka-spinner-svg {
-            display: none !important;
-            visibility: hidden !important;
-            opacity: 0 !important;
-        }
+    .dplayer-video-normal { object-fit: contain !important; }
+    .dplayer-video-zoomed { object-fit: cover !important; }
 
-        /* Custom Seek Bar Colors */
-        .youtube-theme .shaka-seek-bar {
-            background: rgba(255,255,255,.2) !important;
-        }
-        
-        .youtube-theme .shaka-buffered-range {
-            background: rgba(255,255,255,.4) !important;
-        }
-        
-        .youtube-theme .shaka-played-range {
-            background: rgb(255,0,0) !important;
-        }
+    .dplayer-icons-right .dplayer-zoom,
+    .dplayer-icons-right .dplayer-quality {
+      display: inline-block;
+      width: 40px;
+      height: 100%;
+      text-align: center;
+      cursor: pointer;
+      vertical-align: middle;
+      color: #fff;
+      position: relative;
+      margin-right: 4px;
+    }
 
-        /* Manual play button styles */
-        .manual-play-button {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 20px 30px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 18px;
-            z-index: 2000;
-            border: 2px solid #ff0000;
-            display: none;
-            transition: all 0.3s ease;
-        }
-        
-        .manual-play-button:hover {
-            background: rgba(255, 0, 0, 0.8);
-            transform: translate(-50%, -50%) scale(1.05);
-        }
+    .dplayer-icons-right .dplayer-zoom:hover,
+    .dplayer-icons-right .dplayer-quality:hover {
+      color: #b7daff;
+    }
 
-        #myLogo {
-            width: 60px;
-            height: 40px;
-            position: absolute;
-            right: 5px;
-            top: 10px;
-            z-index: 1000;
-        }
+    .dplayer-icons-right .dplayer-zoom svg,
+    .dplayer-icons-right .dplayer-quality svg {
+      width: 20px;
+      height: 20px;
+      margin-top: 10px;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
 
-        .url-input-container {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 10px;
-            border-radius: 8px;
-            display: none;
-        }
+    .dplayer-quality-menu {
+      position: absolute;
+      right: 0;
+      bottom: 50px;
+      background: rgba(28, 28, 28, 0.9);
+      border-radius: 2px;
+      padding: 5px 0;
+      display: none;
+      min-width: 100px;
+      z-index: 100;
+    }
 
-        .url-input-container input {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-right: 5px;
-            width: 300px;
-        }
+    .dplayer-quality-menu.show { display: block; }
 
-        .url-input-container button {
-            padding: 8px 15px;
-            background: #ff0000;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-    </style>
+    .dplayer-quality-menu-item {
+      padding: 5px 15px;
+      font-size: 12px;
+      cursor: pointer;
+      color: #fff;
+    }
+
+    .dplayer-quality-menu-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .dplayer-quality-menu-item.active {
+      color: #b7daff;
+    }
+  </style>
 </head>
 <body>
+  <div id="dplayer"></div>
 
-<div class="shaka-video-container youtube-theme" data-shaka-player>
-    <video autoplay muted playsinline preload="auto" poster=""></video>
+  <script>
+    let dp, zoomed = false, currentQuality = '1080p', sources = {};
 
-    <div class="manual-play-button" id="manualPlayButton">
-        ▶ Click to Play
-    </div>
+    const qualityMap = {
+      '240': '240p',
+      '360': '360p',
+      '480': '480p',
+      '540': '540p',
+      '720': '720p',
+      '1080': '1080p'
+    };
 
-    <div class="url-input-container" id="urlInputContainer">
-        <input type="text" id="m3u8UrlInput" placeholder="Enter M3U8 URL...">
-        <button onclick="loadM3U8Stream()">Load Stream</button>
-    </div>
-</div>
+    const zoomSVG = `
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 4V7C15 8.1 15.9 9 17 9H20M9 4V7C9 8.1 8.1 9 7 9H4M15 20V17C15 15.9 15.9 15 17 15H20M9 20V17C9 15.9 8.1 15 7 15H4"/>
+      </svg>
+    `;
 
-<script>
-    // Get URL parameters
-    const queryParams = new URLSearchParams(window.location.search);
-    const m3u8Url = queryParams.get('url');
-    const keyId = queryParams.get('keyId');
-    const key = queryParams.get('key');
+    const qualitySVG = `
+      <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+        <path d="M28 6L4 6M28 16L4 16M28 26L4 26M24 3L24 9M8 13L8 19M20 23L20 29"/>
+      </svg>
+    `;
 
-    let player, ui, video;
+    async function loadMasterPlaylist(url) {
+      try {
+        const res = await fetch(url);
+        const text = await res.text();
+        const lines = text.split('\n');
 
-    document.addEventListener('DOMContentLoaded', async () => {
-        // Initialize Shaka Player
-        shaka.polyfill.installAll();
+        sources = { 'Auto': url };
 
-        if (!shaka.Player.isBrowserSupported()) {
-            console.error('Browser not supported');
-            alert('Your browser does not support Shaka Player');
-            return;
+        for (let i = 0; i < lines.length; i++) {
+          if (lines[i].startsWith('#EXT-X-STREAM-INF')) {
+            const resolutionMatch = lines[i].match(/RESOLUTION=(\d+)x(\d+)/);
+            const nextLine = lines[i + 1];
+            if (resolutionMatch && nextLine && nextLine.startsWith('http')) {
+              const height = resolutionMatch[2];
+              const label = qualityMap[height] || `${height}p`;
+              sources[label] = nextLine.trim();
+            }
+          }
         }
 
-        video = document.querySelector('video');
-        player = new shaka.Player();
-        await player.attach(video);
+        if (Object.keys(sources).length === 0) throw new Error("No streams found.");
 
-        const container = document.querySelector('.shaka-video-container');
-        ui = new shaka.ui.Overlay(player, container, video);
-
-        // Configure UI
-        const config = {
-            controlPanelElements: [
-                'play_pause',
-                'time_and_duration',
-                'mute',
-                'volume',
-                'spacer',
-                'captions',
-                'quality',
-                'language',
-                'picture_in_picture',
-                'fullscreen',
-                'overflow_menu'
-            ]
-        };
-        ui.configure(config);
-
-        // Configure player for HLS/M3U8
-        player.configure({
-            streaming: {
-                lowLatencyMode: true,
-                bufferingGoal: 15,
-                rebufferingGoal: 2,
-                bufferBehind: 15,
-                retryParameters: {
-                    timeout: 10000,
-                    maxAttempts: 5,
-                    baseDelay: 300,
-                    backoffFactor: 1.2
-                },
-                segmentRequestTimeout: 8000,
-                segmentPrefetchLimit: 2,
-                useNativeHlsOnSafari: true
-            },
-            manifest: {
-                retryParameters: {
-                    timeout: 8000,
-                    maxAttempts: 3
-                },
-                dash: {
-                    ignoreMinBufferTime: true
-                }
-            }
-        });
-
-        // Add CORS headers for M3U8 streams
-        player.getNetworkingEngine().registerRequestFilter((type, request) => {
-            request.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
-            request.headers['Origin'] = window.location.origin;
-            request.headers['Referer'] = window.location.origin;
-            
-            // Add CORS headers for external streams
-            if (request.uris[0].includes('http://') || request.uris[0].includes('https://')) {
-                request.allowCrossSiteCredentials = true;
-            }
-        });
-
-        // Load stream from URL parameter or show input
-        if (m3u8Url) {
-            loadStream(m3u8Url);
+        if (sources['720p']) {
+          currentQuality = '720p';
         } else {
-            // Show URL input if no URL parameter
-            document.getElementById('urlInputContainer').style.display = 'block';
+          currentQuality = Object.keys(sources)[0];
         }
 
-        // Event listeners
-        player.addEventListener('error', (event) => {
-            console.error('Shaka Player Error:', event.detail);
-            showError('Stream loading failed: ' + event.detail.message);
-        });
+        initPlayer(sources[currentQuality]);
 
-        video.addEventListener('loadedmetadata', () => {
-            video.volume = 0.8;
-        });
-
-        // Auto fullscreen on mobile
-        video.addEventListener('play', () => {
-            if (window.self === window.top && !document.fullscreenElement && window.innerWidth <= 768) {
-                container.requestFullscreen().catch(() => {
-                    console.log('Fullscreen request failed');
-                });
-            }
-        }, { once: true });
-
-        // Handle user interaction for sound
-        let hasUserInteracted = false;
-        const enableSoundOnInteraction = () => {
-            if (!hasUserInteracted && video.muted) {
-                video.muted = false;
-                hasUserInteracted = true;
-                console.log('Sound enabled after user interaction');
-            }
-        };
-        
-        ['click', 'touchstart', 'keydown'].forEach(event => {
-            document.addEventListener(event, enableSoundOnInteraction, { once: true });
-        });
-
-        // Show manual play button if autoplay fails
         setTimeout(() => {
-            if (video.paused) {
-                document.getElementById('manualPlayButton').style.display = 'block';
-            }
-        }, 3000);
+          if (dp && dp.video) {
+            dp.video.muted = false;
+            dp.video.volume = 1;
+          }
+        }, 800);
 
-        document.getElementById('manualPlayButton').addEventListener('click', () => {
-            video.play().catch(console.error);
-            document.getElementById('manualPlayButton').style.display = 'none';
+      } catch (err) {
+        alert(`Error loading stream: ${err.message}`);
+      }
+    }
+
+    function initPlayer(url) {
+      if (dp) dp.destroy();
+      dp = new DPlayer({
+        container: document.getElementById('dplayer'),
+        autoplay: true,
+        video: {
+          url,
+          type: 'hls',
+          pic: "https://blogger.googleusercontent.com/img/a/AVvXsEiGqaZeRBZ6Y7yV5ZYSRiNRhBa5q9_EMx7R5TJcHd3XJwwHh2YhNOGt76Y4vEcUIjvIaA7W-Tw1RyMLP-4WZwVHA4mk18zwXl7HdSL5WabprIasDOWJO7jpL0zTQB4p_y7X0Rv0xwe-cJ-GvxofAgeRp2FIiNgB90n_b8Cqw0sAaZqVhJg_fi9UyfSO8KY"
+        },
+        theme: '#b7daff', 
+logo: "https://blogger.googleusercontent.com/img/a/AVvXsEiQ92h-ekVYskxW9qCgLvpQVMpAs4tqUQXnH9nDi37JW5B95V7Cq2Rz_mlGO68vTZmA2H5Qp4p8B0I9EUlW-6W1aVOZgITWN3xyE65Hd6G5G_D6HJFxiuXJaK-wMfYD0PiiUR9EBodkzuPH0-ubAMJQK_3F3rpDMEIJKCxlEzNZucpRzsumlBFXWqinGOw=s885"  });
+
+      dp.video.classList.add('dplayer-video-normal');
+      setTimeout(addCustomControls, 500);
+    }
+
+    function addCustomControls() {
+      const controls = document.querySelector(".dplayer-icons-right");
+      if (!controls) return setTimeout(addCustomControls, 100);
+
+      ['.dplayer-zoom', '.dplayer-quality'].forEach(sel => {
+        const el = controls.querySelector(sel);
+        if (el) el.remove();
+      });
+
+      const zoomBtn = document.createElement('div');
+      zoomBtn.className = 'dplayer-zoom';
+      zoomBtn.title = 'Zoom';
+      zoomBtn.innerHTML = zoomSVG;
+      zoomBtn.onclick = () => {
+        zoomed = !zoomed;
+        dp.video.classList.toggle('dplayer-video-zoomed', zoomed);
+        dp.video.classList.toggle('dplayer-video-normal', !zoomed);
+      };
+
+      if (Object.keys(sources).length > 1) {
+        const qualityBtn = document.createElement('div');
+        qualityBtn.className = 'dplayer-quality';
+        qualityBtn.title = 'Quality';
+        qualityBtn.innerHTML = `${qualitySVG}<div class="dplayer-quality-menu"></div>`;
+
+        const menu = qualityBtn.querySelector('.dplayer-quality-menu');
+
+        Object.keys(sources).sort((a, b) => {
+          if (a === 'Auto') return 1;
+          if (b === 'Auto') return -1;
+          return parseInt(a) - parseInt(b);
+        }).forEach(q => {
+          const item = document.createElement('div');
+          item.className = `dplayer-quality-menu-item${q === currentQuality ? ' active' : ''}`;
+          item.textContent = q;
+          item.onclick = () => {
+            if (q !== currentQuality) {
+              const time = dp.video.currentTime;
+              currentQuality = q;
+              initPlayer(sources[q]);
+              dp.on('loadeddata', () => dp.seek(time));
+            }
+            menu.classList.remove('show');
+          };
+          menu.appendChild(item);
         });
-    });
 
-    // Function to load M3U8 stream
-    async function loadStream(streamUrl) {
-        try {
-            console.log('Loading stream:', streamUrl);
-            
-            // Configure DRM if keys provided
-            if (keyId && key) {
-                player.configure({
-                    drm: {
-                        clearKeys: {
-                            [keyId]: key
-                        }
-                    }
-                });
-            }
+        qualityBtn.onclick = (e) => {
+          e.stopPropagation();
+          menu.classList.toggle('show');
+          setTimeout(() => {
+            const close = (e) => {
+              if (!qualityBtn.contains(e.target)) {
+                menu.classList.remove('show');
+                document.removeEventListener('click', close);
+              }
+            };
+            document.addEventListener('click', close);
+          }, 0);
+        };
 
-            // Enable autoplay
-            video.setAttribute('autoplay', '');
-            video.setAttribute('playsinline', '');
-            video.autoplay = true;
-
-            // Load the stream
-            await player.load(streamUrl);
-            
-            console.log('Stream loaded successfully');
-            
-            // Try to play
-            await attemptAutoplay();
-
-        } catch (error) {
-            console.error('Failed to load stream:', error);
-            showError('Failed to load stream: ' + error.message);
-            
-            // Show manual play button
-            document.getElementById('manualPlayButton').style.display = 'block';
-        }
-    }
-
-    // Function to attempt autoplay
-    async function attemptAutoplay() {
-        try {
-          video.muted = false;
-            await video.play();
-            console.log('Unmuted autoplay successful');
-            document.getElementById('manualPlayButton').style.display = 'none';
-            return true;
-        } catch (error) {
-            console.log('Unmuted autoplay failed:', error.message);
-            try {
-                video.muted = true;
-                await video.play();
-                console.log('Muted autoplay successful');
-                document.getElementById('manualPlayButton').style.display = 'none';
-                return true;
-            } catch (mutedError) {
-                console.log('Muted autoplay failed:', mutedError.message);
-                document.getElementById('manualPlayButton').style.display = 'block';
-                return false;
-            }
-        }
-    }
-
-    // Function to load M3U8 from input
-    function loadM3U8Stream() {
-        const urlInput = document.getElementById('m3u8UrlInput');
-        const streamUrl = urlInput.value.trim();
-        
-        if (streamUrl) {
-            if (streamUrl.endsWith('.m3u8') || streamUrl.includes('m3u8')) {
-                loadStream(streamUrl);
-                document.getElementById('urlInputContainer').style.display = 'none';
-            } else {
-                alert('Please enter a valid M3U8 URL');
-            }
+        const settingsBtn = controls.querySelector('.dplayer-setting');
+        if (settingsBtn) {
+          controls.insertBefore(qualityBtn, settingsBtn);
+          controls.insertBefore(zoomBtn, settingsBtn);
         } else {
-            alert('Please enter a URL');
+          controls.prepend(qualityBtn);
+          controls.prepend(zoomBtn);
         }
+      } else {
+        const settingsBtn = controls.querySelector('.dplayer-setting');
+        if (settingsBtn) {
+          controls.insertBefore(zoomBtn, settingsBtn);
+        } else {
+          controls.prepend(zoomBtn);
+        }
+      }
     }
 
-    // Function to show error message
-    function showError(message) {
-        // You can implement a proper error display here
-        console.error(message);
-        alert(message);
-    }
-
-    // Expose function to global scope for manual URL loading
-    window.loadM3U8Stream = loadM3U8Stream;
-</script>
-
+    const streamUrl = new URLSearchParams(window.location.search).get('url');
+    if (streamUrl) {
+      loadMasterPlaylist(streamUrl);
+    } 
+  </script>
 </body>
 </html>
-  
