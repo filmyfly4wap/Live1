@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Player - GitHub Pages Compatible</title>
+    <title>M3U8 Live Video Player - GitHub Pages</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
-            box-sizing: border-box; 
+            box-sizing: border-box;
             font-family: 'Arial', sans-serif;
         }
         
@@ -19,7 +20,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             padding: 20px;
         }
         
@@ -58,6 +58,7 @@
             border-radius: 10px;
             overflow: hidden;
             background: #000;
+            margin-bottom: 20px;
         }
         
         #video-player {
@@ -67,11 +68,52 @@
             border-radius: 8px;
         }
         
+        .url-input-section {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        #m3u8-url {
+            flex: 1;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+        }
+        
+        #m3u8-url::placeholder {
+            color: #a5b1c2;
+        }
+        
+        .load-btn {
+            background: #4cc9f0;
+            color: #000;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        
+        .load-btn:hover {
+            background: #3ab0d9;
+        }
+        
         .player-controls {
             background: rgba(0, 0, 0, 0.8);
             padding: 15px;
-            border-radius: 0 0 8px 8px;
-            margin-top: -4px;
+            border-radius: 8px;
         }
         
         .progress-container {
@@ -162,6 +204,28 @@
             background: rgba(255, 255, 255, 0.1);
         }
         
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: left;
+        }
+        
+        .status-success {
+            background: rgba(76, 201, 240, 0.1);
+            border-left: 4px solid #4cc9f0;
+        }
+        
+        .status-error {
+            background: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .status-warning {
+            background: rgba(241, 196, 15, 0.1);
+            border-left: 4px solid #f1c40f;
+        }
+        
         .instructions {
             background: rgba(255, 255, 255, 0.05);
             padding: 20px;
@@ -189,18 +253,32 @@
             color: #a5b1c2;
             font-size: 0.9rem;
         }
+        
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>GitHub Pages Video Player</h1>
-            <p>GitHub Pages par video play karne ka solution</p>
+            <h1>M3U8 Live Video Player</h1>
+            <p>GitHub Pages Compatible HLS Stream Player</p>
         </div>
         
         <div class="video-container">
+            <div class="url-input-section">
+                <div class="input-group">
+                    <input type="url" id="m3u8-url" placeholder="Enter your M3U8 stream URL here..." value="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8">
+                    <button class="load-btn" id="load-stream">Load Stream</button>
+                </div>
+                <p style="color: #a5b1c2; font-size: 0.9rem;">Sample URL: https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8</p>
+            </div>
+            
+            <div id="status-area"></div>
+            
             <div class="video-wrapper">
-                <video id="video-player" poster="https://images.unsplash.com/photo-1611162617474-5b21e879e113?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80">
+                <video id="video-player" controls>
                     Your browser does not support the video tag.
                 </video>
             </div>
@@ -213,7 +291,7 @@
                 <div class="controls-bottom">
                     <div class="left-controls">
                         <button class="control-btn play-btn" id="play-button">
-                            ▶ Play Video
+                            ▶ Play
                         </button>
                         <div class="time-display">
                             <span id="current-time">0:00</span> / <span id="duration">0:00</span>
@@ -242,18 +320,23 @@
         </div>
         
         <div class="instructions">
-            <h3>GitHub Pages par Video Play karne ke Tips:</h3>
+            <h3>GitHub Pages pe M3U8 Stream kaise play karein:</h3>
             <ul>
-                <li><strong>User Interaction Required:</strong> GitHub Pages par video sirf user click ke baad hi play ho sakta hai</li>
-                <li><strong>MP4 Format:</strong> MP4 videos sabse better work karte hain</li>
-                <li><strong>HTTPS:</strong> Video URLs HTTPS honi chahiye</li>
-                <li><strong>No Autoplay:</strong> Autoplay with sound allowed nahi hai</li>
-                <li><strong>File Size:</strong> Chote size ki videos use karein for faster loading</li>
+                <li><strong>CORS Proxy Required:</strong> External M3U8 streams ke liye CORS proxy chahiye</li>
+                <li><strong>HTTPS Streams:</strong> Sirf HTTPS wale streams work karte hain</li>
+                <li><strong>Public Streams:</strong> Publicly accessible streams hi work karenge</li>
+                <li><strong>Alternative:</strong> Agar stream nahi chal raha toh MP4 format use karein</li>
+            </ul>
+            
+            <h3>Working M3U8 Test URLs:</h3>
+            <ul>
+                <li>http://217.20.112.199/sethd/index.m3u8</li>
+                <li>http://217.20.112.199/sethd/index.m3u8</li>
             </ul>
         </div>
         
         <div class="github-info">
-            <p>GitHub Pages: fly4wap.github.io | Video Player Solution</p>
+            <p>GitHub Pages: fly4wap.github.io | M3U8 Live Video Player</p>
         </div>
     </div>
 
@@ -261,18 +344,90 @@
         document.addEventListener('DOMContentLoaded', function() {
             const video = document.getElementById('video-player');
             const playButton = document.getElementById('play-button');
+            const loadStreamBtn = document.getElementById('load-stream');
+            const m3u8UrlInput = document.getElementById('m3u8-url');
             const progressBar = document.querySelector('.progress-bar');
             const progressContainer = document.querySelector('.progress-container');
             const currentTimeEl = document.getElementById('current-time');
             const durationEl = document.getElementById('duration');
             const fullscreenBtn = document.querySelector('.fullscreen-btn');
             const videoContainer = document.querySelector('.video-container');
+            const statusArea = document.getElementById('status-area');
             
-            // Sample video URL (aap yahan apni video URL daal sakte hain)
-            const videoUrl = 'http://217.20.112.199/sethd/index.m3u8';
+            let hls = null;
             
-            // Video source set karna
-            video.innerHTML = `<source src="${videoUrl}" type="video/mp4">`;
+            function showStatus(message, type = 'info') {
+                statusArea.innerHTML = `
+                    <div class="status-message status-${type}">
+                        ${message}
+                    </div>
+                `;
+            }
+            
+            function loadM3U8Stream(url) {
+                // Clear previous status
+                showStatus('Loading stream...', 'warning');
+                
+                // Clean up previous HLS instance
+                if (hls) {
+                    hls.destroy();
+                }
+                
+                // Check if HLS is supported
+                if (Hls.isSupported()) {
+                    hls = new Hls({
+                        debug: false,
+                        enableWorker: true,
+                        lowLatencyMode: true,
+                        backBufferLength: 90
+                    });
+                    
+                    hls.loadSource(url);
+                    hls.attachMedia(video);
+                    
+                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                        showStatus('Stream loaded successfully! Click Play to start.', 'success');
+                        playButton.disabled = false;
+                    });
+                    
+                    hls.on(Hls.Events.ERROR, function(event, data) {
+                        console.error('HLS Error:', data);
+                        if (data.fatal) {
+                            switch(data.type) {
+                                case Hls.ErrorTypes.NETWORK_ERROR:
+                                    showStatus('Network Error: Cannot load stream. CORS issue?', 'error');
+                                    break;
+                                case Hls.ErrorTypes.MEDIA_ERROR:
+                                    showStatus('Media Error: Stream format not supported', 'error');
+                                    break;
+                                default:
+                                    showStatus('Unknown error loading stream', 'error');
+                                    break;
+                            }
+                        }
+                    });
+                    
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    // Safari native support
+                    video.src = url;
+                    video.addEventListener('loadedmetadata', function() {
+                        showStatus('Stream loaded successfully! Click Play to start.', 'success');
+                        playButton.disabled = false;
+                    });
+                } else {
+                    showStatus('HLS not supported in your browser', 'error');
+                }
+            }
+            
+            // Load stream button
+            loadStreamBtn.addEventListener('click', function() {
+                const url = m3u8UrlInput.value.trim();
+                if (url) {
+                    loadM3U8Stream(url);
+                } else {
+                    showStatus('Please enter a valid M3U8 URL', 'error');
+                }
+            });
             
             // Play button functionality
             playButton.addEventListener('click', function() {
@@ -284,11 +439,11 @@
                         })
                         .catch(error => {
                             console.error('Video play failed:', error);
-                            alert('Video play nahi ho raha. Kya video URL sahi hai?');
+                            showStatus('Cannot play video: ' + error.message, 'error');
                         });
                 } else {
                     video.pause();
-                    playButton.textContent = '▶ Play Video';
+                    playButton.textContent = '▶ Play';
                     playButton.style.background = '#4cc9f0';
                 }
             });
@@ -302,7 +457,6 @@
                     const progressPercent = (currentTime / duration) * 100;
                     progressBar.style.width = `${progressPercent}%`;
                     
-                    // Time display update
                     currentTimeEl.textContent = formatTime(currentTime);
                 }
             });
@@ -349,17 +503,10 @@
                 return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
             }
             
-            // Quality selector functionality (basic)
-            document.querySelectorAll('.quality-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    document.querySelector('.quality-btn').textContent = 
-                        `Quality ${this.textContent} ▼`;
-                    alert(`Quality changed to: ${this.textContent}`);
-                });
-            });
+            // Load sample stream on page load
+            loadM3U8Stream('http://217.20.112.199/sethd/index.m3u8');
             
-            console.log('Video Player Loaded - GitHub Pages Compatible');
-            console.log('Video URL:', videoUrl);
+            console.log('M3U8 Video Player Loaded - GitHub Pages Compatible');
         });
     </script>
 </body>
